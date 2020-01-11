@@ -1,3 +1,5 @@
-.PHONY: install
 install:
 	go install ./...
+
+test:
+	go test ./...
