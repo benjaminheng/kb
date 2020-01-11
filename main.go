@@ -29,6 +29,9 @@ func browse(args []string) error {
 	// browse files, display titles
 	fileInfos := make([]fileInfo, 0)
 	err := filepath.Walk(config.Config.General.KnowledgeBaseDir, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() && info.Name() == ".git" {
+			return filepath.SkipDir
+		}
 		if !info.IsDir() {
 			fInfo := fileInfo{path: path}
 			if config.Config.General.HasYAMLFrontMatter {
@@ -37,12 +40,14 @@ func browse(args []string) error {
 					return err
 				}
 				result, err := ParseYAMLFrontMatter(f)
-				if err != nil {
+				if err != nil && err != ErrFrontMatterNotFound {
 					return err
 				}
-				if v, ok := result["title"]; ok {
-					if title, ok := v.(string); ok {
-						fInfo.title = title
+				if err == nil {
+					if v, ok := result["title"]; ok {
+						if title, ok := v.(string); ok {
+							fInfo.title = title
+						}
 					}
 				}
 			}
