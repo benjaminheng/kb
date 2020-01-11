@@ -77,7 +77,7 @@ func browse(args []string) error {
 	selection := strings.Trim(b.String(), "\n")
 	if selection != "" {
 		if fInfo, ok := lineLookup[selection]; ok {
-			editFile(config.Config.General.Editor, fInfo.path)
+			editFileWithWorkingDir(config.Config.General.Editor, fInfo.path, config.Config.General.KnowledgeBaseDir)
 		}
 	}
 	return nil
