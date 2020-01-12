@@ -17,6 +17,7 @@ func NewGitCmd() *cobra.Command {
 	}
 	cmd.AddCommand(NewGitPullCmd())
 	cmd.AddCommand(NewGitPushCmd())
+	cmd.AddCommand(NewGitStatusCmd())
 	return cmd
 }
 
@@ -27,6 +28,21 @@ func NewGitPullCmd() *cobra.Command {
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := runShellCommandWithWorkingDir("git pull", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
+
+func NewGitStatusCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "status",
+		Short: "Shows working tree status",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := runShellCommandWithWorkingDir("git status", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
 			if err != nil {
 				return err
 			}
