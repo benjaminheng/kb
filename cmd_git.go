@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/benjaminheng/kb/config"
 	"github.com/spf13/cobra"
@@ -41,16 +41,50 @@ func NewGitPushCmd() *cobra.Command {
 		Short: "Pushes changes to remote",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: add, commit, push? Or is this taking too much
-			// control away from the user?
-			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("Commit message: ")
-			text, _ := reader.ReadString('\n')
-			fmt.Printf("text = %+v\n", text)
-			// command := fmt.Sprintf("git commit -m \"%s\"", text)
-			// if err := runShellCommandWithWorkingDir(command, nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
-			// 	return err
-			// }
+			// check if there are files to commit, if not then do
+			// `git status` and exit quietly
+			if err := runShellCommandWithWorkingDir("git diff-index --quiet HEAD --", nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err == nil {
+				runShellCommandWithWorkingDir("git status", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
+				return nil
+			}
+
+			// git add .
+			fmt.Println("+ git add .")
+			if err := runShellCommandWithWorkingDir("git add .", nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
+
+			// git status
+			fmt.Println("+ git status")
+			if err := runShellCommandWithWorkingDir("git status", nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
+
+			// ask user for confirmation
+			text := getUserInput("Confirm (Y/n): ")
+			if text != "" && strings.ToLower(text) != "y" {
+				fmt.Println("Executing: git reset .")
+				return runShellCommandWithWorkingDir("git reset .", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
+			}
+
+			// ask user for commit message
+			text = getUserInput("Commit message: ")
+			if text == "" {
+				text = "Update files"
+			}
+
+			// git commit -m "X"
+			command := fmt.Sprintf("git commit -m \"%s\"", text)
+			fmt.Println("+ " + command)
+			if err := runShellCommandWithWorkingDir(command, nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
+
+			// git push
+			fmt.Println("+ git push")
+			if err := runShellCommandWithWorkingDir("git push", nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
