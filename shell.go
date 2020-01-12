@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/benjaminheng/kb/config"
 )
@@ -46,4 +48,12 @@ func runSelectCommand(r io.Reader, w io.Writer) error {
 		command += " --ansi"
 	}
 	return runShellCommand(command, r, w)
+}
+
+func getUserInput(message string) string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(message)
+	text, _ := reader.ReadString('\n')
+	text = strings.TrimSpace(text)
+	return text
 }
