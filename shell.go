@@ -16,8 +16,11 @@ func editFile(command, file string) error {
 }
 
 func editFileWithWorkingDir(command, file, workingDir string) error {
-	command = fmt.Sprintf("cd %s && %s %s", workingDir, command, file)
-	return editFile(command, file)
+	return editFile(withWorkingDir(workingDir, command), file)
+}
+
+func runShellCommandWithWorkingDir(command string, r io.Reader, w io.Writer, workingDir string) error {
+	return runShellCommand(withWorkingDir(workingDir, command), r, w)
 }
 
 func runShellCommand(command string, r io.Reader, w io.Writer) error {
@@ -31,6 +34,10 @@ func runShellCommand(command string, r io.Reader, w io.Writer) error {
 	cmd.Stdout = w
 	cmd.Stdin = r
 	return cmd.Run()
+}
+
+func withWorkingDir(workingDir, command string) string {
+	return fmt.Sprintf("cd %s && %s", workingDir, command)
 }
 
 func runSelectCommand(r io.Reader, w io.Writer) error {
