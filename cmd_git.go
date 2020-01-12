@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -83,10 +85,21 @@ func NewGitPushCmd() *cobra.Command {
 				return runShellCommandWithWorkingDir("git reset .", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
 			}
 
+			// get list of changed files
+			b := &bytes.Buffer{}
+			if err := runShellCommandWithWorkingDir("git diff --name-only --cached", nil, b, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
+			files := strings.Split(b.String(), "\n")
+			if len(files) == 0 {
+				return errors.New("no files staged for commit") // should not happen
+			}
+			defaultCommitMessage := fmt.Sprintf("Update %s", files[0])
+
 			// ask user for commit message
-			text = getUserInput("Commit message: ")
+			text = getUserInput(fmt.Sprintf("Commit message (%s): ", defaultCommitMessage))
 			if text == "" {
-				text = "Update files"
+				text = defaultCommitMessage
 			}
 
 			// git commit -m "X"
