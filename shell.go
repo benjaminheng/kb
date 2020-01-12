@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+
+	"github.com/benjaminheng/kb/config"
 )
 
 func editFile(command, file string) error {
@@ -29,4 +31,12 @@ func runShellCommand(command string, r io.Reader, w io.Writer) error {
 	cmd.Stdout = w
 	cmd.Stdin = r
 	return cmd.Run()
+}
+
+func runSelectCommand(r io.Reader, w io.Writer) error {
+	command := config.Config.General.SelectCmd
+	if command == "fzf" && config.Config.General.Color {
+		command += " --ansi"
+	}
+	return runShellCommand(command, r, w)
 }

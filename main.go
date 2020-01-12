@@ -12,11 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	greenColor = color.New(color.FgGreen)
-	redColor   = color.New(color.FgRed)
-)
-
 type rootCmdConfig struct {
 }
 
@@ -61,11 +56,20 @@ func browse(args []string) error {
 	var content string
 	lineLookup := make(map[string]fileInfo)
 	for i, v := range fileInfos {
-		line := greenColor.Sprint(v.path)
+		var line string
 		if v.title != "" {
-			line += " :: " + redColor.Sprint(v.title)
+			line = v.title + " :: "
 		}
+		line += v.path
 		lineLookup[line] = v
+
+		if config.Config.General.Color {
+			if v.title != "" {
+				line = color.GreenString(v.title) + " :: "
+			}
+			line += v.path
+		}
+
 		content += line
 		if i < len(fileInfos)-1 {
 			content += "\n"
@@ -73,7 +77,7 @@ func browse(args []string) error {
 	}
 	r := strings.NewReader(content)
 	b := &bytes.Buffer{}
-	runShellCommand("fzf", r, b)
+	runSelectCommand(r, b)
 	selection := strings.Trim(b.String(), "\n")
 	if selection != "" {
 		if fInfo, ok := lineLookup[selection]; ok {
@@ -95,10 +99,6 @@ func NewRootCmd() *cobra.Command {
 			err := config.Config.Load()
 			if err != nil {
 				return err
-			}
-			if !config.Config.General.Color {
-				redColor.DisableColor()
-				greenColor.DisableColor()
 			}
 			return nil
 		},
