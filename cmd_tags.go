@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/benjaminheng/kb/config"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -38,25 +38,28 @@ func tags(cmd *cobra.Command, args []string) error {
 	}
 
 	// format tags (color, alignment)
-	var formattedTags string
+	formattedTagsBuf := &bytes.Buffer{}
+	w := new(tabwriter.Writer)
+	w.Init(formattedTagsBuf, 0, 8, 0, '\t', 0)
 	for _, line := range strings.Split(tagsBuf.String(), "\n") {
 		components := strings.Split(line, "\t")
 		if len(components) < 2 {
 			continue
 		}
-		if config.Config.General.Color {
-			components[0] = color.GreenString(components[0])
-			components[1] = color.RedString(components[1])
-		}
-		// TODO: alignment
+		// if config.Config.General.Color {
+		// 	components[0] = color.GreenString(components[0])
+		// 	components[1] = color.RedString(components[1])
+		// }
+		// TODO: custom alignment with max first column size
+		// TODO: support color
 		formattedTag := strings.Join(components, "\t")
-		formattedTags += formattedTag + "\n"
+		fmt.Fprintln(w, formattedTag)
 	}
-	formattedTags = strings.TrimSpace(formattedTags)
+	w.Flush()
 
 	// get user selection
 	selectionBuf := &bytes.Buffer{}
-	runSelectCommand(strings.NewReader(formattedTags), selectionBuf)
+	runSelectCommand(formattedTagsBuf, selectionBuf)
 	if strings.TrimSpace(selectionBuf.String()) == "" {
 		return nil
 	}
@@ -64,7 +67,7 @@ func tags(cmd *cobra.Command, args []string) error {
 	if len(components) == 0 {
 		return nil
 	}
-	tag := components[0]
+	tag := strings.TrimSpace(components[0])
 
 	// open in editor; editor has been validated to be either vim/nvim.
 	command = fmt.Sprintf("%s -t \"%s\"", config.Config.General.Editor, tag)
