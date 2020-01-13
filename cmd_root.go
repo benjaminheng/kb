@@ -103,6 +103,7 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewBrowseCmd())
 	c.AddCommand(NewSearchCmd())
 	c.AddCommand(NewGitCmd())
+	c.AddCommand(NewTagsCmd())
 
 	// c.PersistentFlags().BoolVar(&rootConfig.Staging, "stage", false, "Use staging config")
 	return c

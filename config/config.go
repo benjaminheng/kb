@@ -24,7 +24,7 @@ type GeneralConfig struct {
 	Editor             string `toml:"editor"`
 	SelectCmd          string `toml:"select_cmd"`
 	HasYAMLFrontMatter bool   `toml:"has_yaml_front_matter"`
-	Color              bool   `json:"color"`
+	Color              bool   `toml:"color"`
 }
 
 // Flag is a global variable used to store flags.
@@ -74,6 +74,7 @@ func (cfg *RootConfig) initDefaultConfig() error {
 
 	cfg.General.KnowledgeBaseDir = kbDir
 	cfg.General.SelectCmd = "fzf"
+	cfg.General.Color = false
 
 	cfg.General.Editor = os.Getenv("EDITOR")
 	if cfg.General.Editor == "" && runtime.GOOS != "windows" {
