@@ -61,7 +61,11 @@ func NewGitPushCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// check if there are files to commit, if not then do
 			// `git status` and exit quietly
-			if err := runShellCommandWithWorkingDir("git diff-index --quiet HEAD --", nil, os.Stdout, config.Config.General.KnowledgeBaseDir); err == nil {
+			b := &bytes.Buffer{}
+			if err := runShellCommandWithWorkingDir("git ls-files --others --modified", nil, b, config.Config.General.KnowledgeBaseDir); err != nil {
+				return err
+			}
+			if b.String() == "" {
 				runShellCommandWithWorkingDir("git status", nil, os.Stdout, config.Config.General.KnowledgeBaseDir)
 				return nil
 			}
@@ -86,7 +90,7 @@ func NewGitPushCmd() *cobra.Command {
 			}
 
 			// get list of changed files
-			b := &bytes.Buffer{}
+			b = &bytes.Buffer{}
 			if err := runShellCommandWithWorkingDir("git diff --name-only --cached", nil, b, config.Config.General.KnowledgeBaseDir); err != nil {
 				return err
 			}
