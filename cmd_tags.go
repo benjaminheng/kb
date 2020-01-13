@@ -37,6 +37,7 @@ func tags(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// format tags (color, alignment)
 	var formattedTags string
 	for _, line := range strings.Split(tagsBuf.String(), "\n") {
 		components := strings.Split(line, "\t")
@@ -53,7 +54,7 @@ func tags(cmd *cobra.Command, args []string) error {
 	}
 	formattedTags = strings.TrimSpace(formattedTags)
 
-	// get selection
+	// get user selection
 	selectionBuf := &bytes.Buffer{}
 	runSelectCommand(strings.NewReader(formattedTags), selectionBuf)
 	if strings.TrimSpace(selectionBuf.String()) == "" {
