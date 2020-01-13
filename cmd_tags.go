@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -20,8 +21,13 @@ func NewTagsCmd() *cobra.Command {
 }
 
 func tags(cmd *cobra.Command, args []string) error {
-	// TODO: check if ctags exists
-	// TODO: check if editor is vim
+	// validate
+	if err := runShellCommand("command -v ctags", nil, nil); err != nil {
+		return errors.New("ctags not installed")
+	}
+	if config.Config.General.Editor != "vim" && config.Config.General.Editor != "nvim" {
+		return errors.New("only vim is supported for this command. current editor: " + config.Config.General.Editor)
+	}
 
 	// generate tags
 	tagsBuf := &bytes.Buffer{}
@@ -42,7 +48,7 @@ func tags(cmd *cobra.Command, args []string) error {
 	}
 	tag := components[0]
 
-	// only vim is supported here
+	// open in editor; editor has been validated to be either vim/nvim.
 	command = fmt.Sprintf("%s -t \"%s\"", config.Config.General.Editor, tag)
 	if err := runShellCommandWithWorkingDir(command, os.Stdin, os.Stdout, config.Config.General.KnowledgeBaseDir); err != nil {
 		return err
