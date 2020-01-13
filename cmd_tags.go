@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/benjaminheng/kb/config"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -36,9 +37,25 @@ func tags(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	var formattedTags string
+	for _, line := range strings.Split(tagsBuf.String(), "\n") {
+		components := strings.Split(line, "\t")
+		if len(components) < 2 {
+			continue
+		}
+		if config.Config.General.Color {
+			components[0] = color.GreenString(components[0])
+			components[1] = color.RedString(components[1])
+		}
+		// TODO: alignment
+		formattedTag := strings.Join(components, "\t")
+		formattedTags += formattedTag + "\n"
+	}
+	formattedTags = strings.TrimSpace(formattedTags)
+
 	// get selection
 	selectionBuf := &bytes.Buffer{}
-	runShellCommand("fzf", tagsBuf, selectionBuf)
+	runSelectCommand(strings.NewReader(formattedTags), selectionBuf)
 	if strings.TrimSpace(selectionBuf.String()) == "" {
 		return nil
 	}
