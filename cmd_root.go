@@ -92,7 +92,7 @@ func NewRootCmd() *cobra.Command {
 			return browse(args)
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			err := config.Config.Load()
+			err := config.Config.Load(config.Config.General.ConfigFile)
 			if err != nil {
 				return err
 			}
@@ -104,6 +104,6 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewSearchCmd())
 	c.AddCommand(NewGitCmd())
 
-	// c.PersistentFlags().BoolVar(&rootConfig.Staging, "stage", false, "Use staging config")
+	c.PersistentFlags().StringVar(&config.Config.General.ConfigFile, "config", "", "Path to config file (default: $HOME/.config/kb/config.toml)")
 	return c
 }

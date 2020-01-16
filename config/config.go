@@ -20,11 +20,12 @@ type RootConfig struct {
 
 // GeneralConfig represents general configuration values.
 type GeneralConfig struct {
+	ConfigFile         string `toml:"config_file"`
 	KnowledgeBaseDir   string `toml:"knowledge_base_dir"`
 	Editor             string `toml:"editor"`
 	SelectCmd          string `toml:"select_cmd"`
 	HasYAMLFrontMatter bool   `toml:"has_yaml_front_matter"`
-	Color              bool   `json:"color"`
+	Color              bool   `toml:"color"`
 }
 
 // Flag is a global variable used to store flags.
@@ -34,16 +35,24 @@ var Flag FlagConfig
 type FlagConfig struct {
 }
 
-func (cfg *RootConfig) Load() error {
-	file, err := getConfigFile()
-	if err != nil {
-		return err
+func (cfg *RootConfig) Load(configFile string) error {
+	var file string
+	var err error
+	var isDefaultConfigFile bool
+	if configFile == "" {
+		file, err = getConfigFile()
+		if err != nil {
+			return err
+		}
+		isDefaultConfigFile = true
+	} else {
+		file = configFile
 	}
 
 	// Create default config if it does not already exist
 	_, err = os.Stat(file)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if os.IsNotExist(err) && isDefaultConfigFile {
 			cfg.initDefaultConfig()
 			return nil
 		}
