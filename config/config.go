@@ -20,12 +20,15 @@ type RootConfig struct {
 
 // GeneralConfig represents general configuration values.
 type GeneralConfig struct {
-	ConfigFile         string `toml:"config_file"`
-	KnowledgeBaseDir   string `toml:"knowledge_base_dir"`
-	Editor             string `toml:"editor"`
-	SelectCmd          string `toml:"select_cmd"`
-	HasYAMLFrontMatter bool   `toml:"has_yaml_front_matter"`
-	Color              bool   `toml:"color"`
+	ConfigFile         string   `toml:"config_file"`
+	KnowledgeBaseDir   string   `toml:"knowledge_base_dir"`
+	Editor             string   `toml:"editor"`
+	SelectCmd          string   `toml:"select_cmd"`
+	HasYAMLFrontMatter bool     `toml:"has_yaml_front_matter"`
+	Color              bool     `toml:"color"`
+	IgnoredFilenames   []string `toml:"ignored_filenames"`
+
+	ignoredFilenameLookup map[string]bool
 }
 
 // Flag is a global variable used to store flags.
@@ -33,6 +36,19 @@ var Flag FlagConfig
 
 // FlagConfig represents flags that the kb command accepts.
 type FlagConfig struct {
+}
+
+func (cfg *RootConfig) IsIgnoredFilename(filename string) bool {
+	if cfg.General.ignoredFilenameLookup == nil {
+		cfg.General.ignoredFilenameLookup = make(map[string]bool)
+		for _, v := range cfg.General.IgnoredFilenames {
+			cfg.General.ignoredFilenameLookup[v] = true
+		}
+	}
+	if _, ok := cfg.General.ignoredFilenameLookup[filename]; ok {
+		return true
+	}
+	return false
 }
 
 func (cfg *RootConfig) Load(configFile string) error {
@@ -83,6 +99,7 @@ func (cfg *RootConfig) initDefaultConfig() error {
 
 	cfg.General.KnowledgeBaseDir = kbDir
 	cfg.General.SelectCmd = "fzf"
+	cfg.General.IgnoredFilenames = []string{}
 
 	cfg.General.Editor = os.Getenv("EDITOR")
 	if cfg.General.Editor == "" && runtime.GOOS != "windows" {

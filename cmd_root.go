@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -12,21 +13,25 @@ import (
 )
 
 type fileInfo struct {
-	path  string
-	title string
+	path     string
+	filename string
+	title    string
 }
 
 func browse(args []string) error {
 	// browse files, display titles
 	fileInfos := make([]fileInfo, 0)
-	err := filepath.Walk(config.Config.General.KnowledgeBaseDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(config.Config.General.KnowledgeBaseDir, func(fpath string, info os.FileInfo, err error) error {
 		if info.IsDir() && info.Name() == ".git" {
 			return filepath.SkipDir
 		}
 		if !info.IsDir() {
-			fInfo := fileInfo{path: path}
+			fInfo := fileInfo{path: fpath, filename: path.Base(fpath)}
+			if config.Config.IsIgnoredFilename(fInfo.filename) {
+				return nil
+			}
 			if config.Config.General.HasYAMLFrontMatter {
-				f, err := os.Open(path)
+				f, err := os.Open(fpath)
 				if err != nil {
 					return err
 				}
