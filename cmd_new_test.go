@@ -18,6 +18,11 @@ func TestTitleToFilename(t *testing.T) {
 			"this is a    title",
 			"this-is-a-title.md",
 		},
+		{
+			"filename is lowercased",
+			"Title",
+			"title.md",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

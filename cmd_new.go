@@ -49,6 +49,7 @@ func titleToFilename(title string) string {
 	consecutiveDashes := regexp.MustCompile(`-{2,}`)
 	filename := nonWords.ReplaceAllString(title, "-")
 	filename = consecutiveDashes.ReplaceAllString(filename, "-")
+	filename = strings.ToLower(filename)
 	filename += ".md"
 	return filename
 }
