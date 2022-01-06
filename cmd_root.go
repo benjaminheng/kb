@@ -108,6 +108,7 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewBrowseCmd())
 	c.AddCommand(NewSearchCmd())
 	c.AddCommand(NewGitCmd())
+	c.AddCommand(NewNewCmd())
 
 	c.PersistentFlags().StringVar(&config.Config.General.ConfigFile, "config", "", "Path to config file (default: $HOME/.config/kb/config.toml)")
 	return c
