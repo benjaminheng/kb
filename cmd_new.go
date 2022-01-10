@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"regexp"
@@ -25,6 +24,13 @@ func NewNewCmd() *cobra.Command {
 }
 
 func createNewFile(cmd *cobra.Command, args []string) error {
+	if config.Config.General.Editor != "vim" && config.Config.General.Editor != "nvim" {
+		// Currently only vim is supported, because we'll be opening
+		// vim with an unsaved buffer. For other editors, we might have
+		// to write the file first, then open it in the editor.
+		return errors.New("`kb new` is only supported if editor=vim or editor=nvim in config")
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 
 	var title, filename string
@@ -49,17 +55,10 @@ func createNewFile(cmd *cobra.Command, args []string) error {
 	filePath := path.Join(config.Config.General.KnowledgeBaseDir, filename)
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
-		f, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-		io.WriteString(f, fmt.Sprintf("---\ntitle: \"%s\"\n---", title))
-		f.Close()
-		editFileWithWorkingDir(config.Config.General.Editor, filePath, config.Config.General.KnowledgeBaseDir)
-	} else {
-		editFileWithWorkingDir(config.Config.General.Editor, filePath, config.Config.General.KnowledgeBaseDir)
+		return editUnsavedFileInVim(config.Config.General.Editor, filePath, strings.NewReader(fmt.Sprintf("---\ntitle: \"%s\"\n---", title)), os.Stdout, config.Config.General.KnowledgeBaseDir)
+
 	}
-	return nil
+	return editFileWithWorkingDir(config.Config.General.Editor, filePath, config.Config.General.KnowledgeBaseDir)
 }
 
 func titleToFilename(title string) string {

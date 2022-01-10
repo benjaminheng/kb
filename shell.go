@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -56,4 +57,20 @@ func getUserInput(message string) string {
 	text, _ := reader.ReadString('\n')
 	text = strings.TrimSpace(text)
 	return text
+}
+
+func editUnsavedFileInVim(command string, filePath string, stdin io.Reader, stdout io.Writer, workingDir string) error {
+	// Edit file as an unsaved buffer in vim or nvim. Initial contents of
+	// the buffer is taken from stdin.
+	if command != "vim" && command != "nvim" {
+		return errors.New("only vim or nvim is supported")
+	}
+	shellCmd := exec.Command(command, "-", "-c", fmt.Sprintf(`file %s`, filePath))
+	if workingDir != "" {
+		shellCmd.Dir = workingDir
+	}
+	shellCmd.Stderr = os.Stderr
+	shellCmd.Stdin = stdin
+	shellCmd.Stdout = os.Stdout
+	return shellCmd.Run()
 }
