@@ -65,7 +65,7 @@ func editUnsavedFileInVim(command string, filePath string, stdin io.Reader, stdo
 	if command != "vim" && command != "nvim" {
 		return errors.New("only vim or nvim is supported")
 	}
-	shellCmd := exec.Command(command, "-", "-c", fmt.Sprintf(`file %s`, filePath))
+	shellCmd := exec.Command(command, "-", "-c", fmt.Sprintf(`file %s`, filePath), "-c", "set ft=markdown")
 	if workingDir != "" {
 		shellCmd.Dir = workingDir
 	}
